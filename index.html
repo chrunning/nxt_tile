@@ -1,56 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <base target="_top">
     <script src="https://sky.blackbaudcdn.net/static/sky-addin-client/1/sky-addin-client.browser.min.js"></script>
-    <style>
-        body { font-family: sans-serif; padding: 15px; background-color: white; }
-        .error-msg { color: red; display: none; }
-    </style>
 </head>
-<body>
-
-    <div id="main-content">
-        <h3 style="margin-top:0;">Help Documents</h3>
-        <ul>
-            <li><a href="https://yourlink1.com" target="_blank">Procedures Manual</a></li>
-            <li><a href="https://yourlink2.com" target="_blank">Help Desk</a></li>
-        </ul>
-    </div>
-
-    <div id="debug-zone" style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px;">
-        <p><small>If you see this, the page loaded but the handshake hasn't finished.</small></p>
-        <button onclick="forceShow()">Force Show Tile</button>
-    </div>
-
+<body style="background-color: yellow;"> <h1>It is working!</h1>
     <script>
-        // Log to console for debugging
-        console.log("Add-in script starting...");
-
-        try {
-            const client = new BBSkyAddinClient.AddinClient({
-                callbacks: {
-                    init: (args) => {
-                        console.log("Init callback received from NXT!");
-                        args.ready({
-                            showUI: true,
-                            title: 'Tile Procs'
-                        });
-                        // Hide debug zone if handshake works
-                        document.getElementById('debug-zone').style.display = 'none';
-                    }
+        // The simplest possible handshake
+        var client = new BBSkyAddinClient.AddinClient({
+            callbacks: {
+                init: function(args) {
+                    args.ready({
+                        showUI: true,
+                        title: 'TEST TILE'
+                    });
                 }
-            });
-        } catch (e) {
-            console.error("Add-in Client failed to initialize:", e);
-        }
-
-        // Manual override for testing
-        function forceShow() {
-            alert("Attempting manual handshake...");
-            // This usually won't work if the client didn't handshake, 
-            // but it helps see if the button is clickable.
-        }
+            }
+        });
     </script>
 </body>
 </html>
