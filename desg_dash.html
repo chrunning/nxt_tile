@@ -7,6 +7,12 @@
         body { font-family: sans-serif; padding: 15px; text-align: center; }
         #argosFrame { display: none; width: 100%; height: 600px; border: none; }
         .btn { background: #0072ac; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        #argosFrame {
+            width: 150%; /* Make it think it has more room */
+            height: 900px;
+            transform: scale(0.65); /* Shrink it down to 65% */
+            transform-origin: 0 0; /* Keep it pinned to the top left */
+            border: none;}
     </style>
 </head>
 <body>
