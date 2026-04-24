@@ -1,21 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="https://sky.blackbaudcdn.net/static/sky-addin-client/1/sky-addin-client.browser.min.js"></script>
+    <base target="_top">
+    <script src="https://sky.blackbaudcdn.net/static/sky-addin-client/1/sky-addin-client.umd.min.js"></script>
 </head>
-<body style="background-color: yellow;"> <h1>It is working!</h1>
+<body>
+    <div style="font-family: sans-serif; padding: 10px;">
+        <h3 style="margin-top:0;">Helpful Links</h3>
+        <ul style="line-height: 1.6;">
+            <li><a href="https://yourlink1.com" target="_blank">Procedures Manual</a></li>
+            <li><a href="https://yourlink2.com" target="_blank">Internal Help Desk</a></li>
+        </ul>
+    </div>
+
     <script>
-        // The simplest possible handshake
-        var client = new BBSkyAddinClient.AddinClient({
-            callbacks: {
-                init: function(args) {
-                    args.ready({
-                        showUI: true,
-                        title: 'TEST TILE'
-                    });
-                }
+        // 2. The "Library Guard" function
+        function initAddin() {
+            // Check if the Blackbaud library is loaded yet
+            if (window.BBSkyAddinClient) {
+                console.log("Library found! Starting handshake...");
+                
+                var client = new BBSkyAddinClient.AddinClient({
+                    callbacks: {
+                        init: function(args) {
+                            // 3. THE HANDSHAKE
+                            args.ready({
+                                showUI: true,
+                                title: 'Tile Procs'
+                            });
+                        }
+                    }
+                });
+            } else {
+                // If not loaded, wait 50ms and try again
+                console.log("Library not ready, retrying...");
+                setTimeout(initAddin, 50);
             }
-        });
+        }
+
+        // Start the check
+        initAddin();
     </script>
 </body>
 </html>
