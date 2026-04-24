@@ -4,34 +4,55 @@
     <base target="_top">
     <script src="https://sky.blackbaudcdn.net/static/sky-addin-client/1/sky-addin-client.umd.min.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #ffffff; }
-        /* Make the iframe fill the tile area perfectly */
-        iframe { border: none; width: 100%; height: 100vh; }
+        body { font-family: sans-serif; padding: 15px; text-align: center; }
+        #argosFrame { display: none; width: 100%; height: 600px; border: none; }
+        .btn { background: #0072ac; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <iframe src="https://argos.evisions.app/embed?DataBlockId=4270&server=https%3A%2F%2Fmaps.suu.edu%3A443" id="argosFrame"></iframe>
+    <div id="setup-zone">
+        <p>Argos requires permission to show secure data in this tile.</p>
+        <button class="btn" onclick="requestAccess()">Connect Argos Dashboard</button>
+    </div>
+
+    <iframe id="argosFrame" src="https://argos.evisions.app/embed?DataBlockId=4270&server=https%3A%2F%2Fmaps.suu.edu%3A443"></iframe>
 
     <script>
-        function startAddin() {
-            if (window.BBSkyAddinClient) {
-                var client = new BBSkyAddinClient.AddinClient({
-                    callbacks: {
-                        init: function(args) {
-                            // Tell NXT to show the tile
-                            args.ready({
-                                showUI: true,
-                                title: 'Argos Enrollment Stats' // You can change this title
-                            });
-                        }
-                    }
-                });
-            } else {
-                setTimeout(startAddin, 50);
+        // 1. Blackbaud Handshake
+        var client = new BBSkyAddinClient.AddinClient({
+            callbacks: {
+                init: function(args) {
+                    args.ready({ showUI: true, title: 'Argos Stats' });
+                }
             }
+        });
+
+        // 2. The Storage Access Fix
+        function requestAccess() {
+            if (!document.requestStorageAccess) {
+                // Browser doesn't support the API (likely an old browser)
+                showDashboard();
+                return;
+            }
+
+            document.requestStorageAccess().then(
+                () => {
+                    console.log("Access granted!");
+                    showDashboard();
+                },
+                () => {
+                    console.log("Access denied by user or browser.");
+                    // Fallback: try to show it anyway
+                    showDashboard();
+                }
+            );
         }
-        startAddin();
+
+        function showDashboard() {
+            document.getElementById('setup-zone').style.display = 'none';
+            document.getElementById('argosFrame').style.display = 'block';
+        }
     </script>
 </body>
 </html>
