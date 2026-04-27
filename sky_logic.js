@@ -1,51 +1,49 @@
 /**
  * sky_logic.js
- * Universal utility for NXT Add-ins: Security, Decoding, and Translation
  */
 
 const SkyLogic = {
-    // PASTE YOUR GENERATED STRING FROM GOOGLE LOGS HERE
-    _vault: "Y2V4ZS9ESV9SVU9ZL3Mvc29yY2FtL21vYy5lbGdvb2cudHBwcGlyY3MvLzpzcHR0aA==", 
+    // 1. Vault Storage
+    _vault: {
+        gas: "Y2V4ZS9ESV9SVU9ZL3Mvc29yY2FtL21vYy5lbGdvb2cudHBwcGlyY3MvLzpzcHR0aA==",
+        form: "bXJvZndlaXYvdy9MdzVfNVhrczVYSE5oRHhOT3pTNT1zTjBuUFV2R21KMXNTcHBzMDIyWGZ2NlNRTFBZQUYxL2UvZC9zbXJvZi9jb20uZWxnb29nLnNjb2QvLzpzcHR0aA=="
+    },
 
-    // 1. Obfuscation Decoder: Rebuilds the Google Script URL at runtime
-    getServiceUrl: function() {
+    // 2. Universal Decoder
+    decodeVault: function(key) {
         try {
-            // Decode Base64, then reverse the characters
-            const decoded = atob(this._vault);
-            return decoded.split("").reverse().join("");
+            const scrambled = this._vault[key];
+            if (!scrambled) return null;
+            return atob(scrambled).split("").reverse().join("");
         } catch (e) {
-            console.error("Vault access failed. Check your _vault string.");
+            console.error(`Decoding failed for key: ${key}`);
             return null;
         }
     },
 
-    // 2. Decode the JWT to get User Info (Email, Org ID)
+    // 3. JWT Decoder
     getUserFromToken: function(token) {
         try {
+            if (!token || !token.includes('.')) return null;
             const base64Url = token.split('.')[1];
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
             const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
                 return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
             }).join(''));
-
             return JSON.parse(jsonPayload);
         } catch (e) {
-            console.error("Error decoding token", e);
             return null;
         }
     },
 
-    // 3. The "Translator" - Communicates with your Google Apps Script
-    // Note: It now gets the URL automatically from getServiceUrl()
+    // 4. Translator
     translateId: async function(guid, token, secret) {
-        const scriptUrl = this.getServiceUrl();
+        const scriptUrl = this.decodeVault('gas');
         if (!scriptUrl) return null;
 
         const fullUrl = `${scriptUrl}?guid=${guid}&token=${token}&secret=${secret}`;
-        
         try {
             const response = await fetch(fullUrl);
-            if (!response.ok) throw new Error('Network response was not ok');
             return await response.json();
         } catch (error) {
             console.error("Translation failed:", error);
@@ -53,8 +51,9 @@ const SkyLogic = {
         }
     },
 
-    // 4. Form URL Builder
-    buildFormUrl: function(baseUrl, mappings) {
+    // 5. Form URL Builder
+    buildFormUrl: function(mappings) {
+        const baseUrl = this.decodeVault('form');
         let url = baseUrl + (baseUrl.includes('?') ? '' : '?usp=pp_url');
         
         for (const [key, value] of Object.entries(mappings)) {
