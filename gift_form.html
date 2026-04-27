@@ -1,0 +1,27 @@
+// ... inside init: async function(args) ...
+
+try {
+    const token = await client.getUserIdentityToken();
+    const user = SkyLogic.getUserFromToken(token);
+    
+    // Call Google Apps Script for the Lookup ID
+    const data = await SkyLogic.translateId(args.context.recordId, token, "YOUR_APP_SECRET");
+
+    if (data && data.lookupId) {
+        // Build the URL using the internal 'form' vault key
+        const finalUrl = SkyLogic.buildFormUrl({
+            "entry.488317102": user.email,
+            "entry.551539184": data.lookupId
+        });
+
+        const btn = document.getElementById('formBtn');
+        btn.href = finalUrl;
+        btn.classList.remove('disabled');
+        btn.innerText = `Start Gift Form for ${data.lookupId}`;
+        document.getElementById('status-text').innerText = "Ready to proceed.";
+    }
+} catch (err) {
+    // Error handling...
+}
+
+args.ready({ showUI: true, title: 'Gift Intake' });
