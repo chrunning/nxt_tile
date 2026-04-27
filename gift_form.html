@@ -1,27 +1,147 @@
-// ... inside init: async function(args) ...
-
-try {
-    const token = await client.getUserIdentityToken();
-    const user = SkyLogic.getUserFromToken(token);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gift Intake Form</title>
+    <script src="https://sky.blackbaudcdn.net/static/add-in-client/sdk/1/ui/addin-client.js"></script>
+    <script src="sky_logic.js"></script>
     
-    // Call Google Apps Script for the Lookup ID
-    const data = await SkyLogic.translateId(args.context.recordId, token, "YOUR_APP_SECRET");
+    <style>
+        body {
+            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            margin: 0;
+            padding: 15px;
+            background-color: #ffffff;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .btn {
+            background-color: #0072ac;
+            color: #ffffff;
+            border: 1px solid #0072ac;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .btn:hover {
+            background-color: #005a87;
+            border-color: #005a87;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn.disabled {
+            background-color: #e2e2e2;
+            border-color: #cccccc;
+            color: #888;
+            pointer-events: none;
+        }
+        #status-text {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .error { color: #d04437; font-weight: bold; }
+        .loading-spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(0,114,172,.2);
+            border-radius: 50%;
+            border-top-color: #0072ac;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 5px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
 
-    if (data && data.lookupId) {
-        // Build the URL using the internal 'form' vault key
-        const finalUrl = SkyLogic.buildFormUrl({
-            "entry.488317102": user.email,
-            "entry.551539184": data.lookupId
+    <div class="container">
+        <div id="status-area">
+            <div id="loader" class="loading-spinner"></div>
+            <span id="status-text">Connecting to Raiser's Edge...</span>
+        </div>
+        <a id="formBtn" class="btn disabled" href="#" target="_blank">Initializing...</a>
+    </div>
+
+    <script>
+        /**
+         * CONFIGURATION
+         * Ensure APP_SECRET matches your Google Apps Script validation logic.
+         */
+        const APP_SECRET = const data = await SkyLogic.translateId(
+            args.context.recordId, 
+            token, 
+            SkyLogic.decodeVault('secret'); 
+
+        // Initialize the Blackbaud Add-in Client
+        const client = new BBSkyAddinClient.AddinClient({
+            callbacks: {
+                init: async function(args) {
+                    const status = document.getElementById('status-text');
+                    const loader = document.getElementById('loader');
+                    const btn = document.getElementById('formBtn');
+
+                    try {
+                        // 1. Get the Identity Token from Blackbaud
+                        status.innerText = "Verifying identity...";
+                        const token = await client.getUserIdentityToken();
+                        
+                        // 2. Decode user info (specifically email) from the token
+                        const user = SkyLogic.getUserFromToken(token);
+                        if (!user) throw new Error("Identity verification failed.");
+
+                        // 3. Call your Google Script to translate the GUID to a Lookup ID
+                        status.innerText = "Retrieving Donor ID...";
+                        const data = await SkyLogic.translateId(args.context.recordId, token, APP_SECRET);
+
+                        if (data && data.lookupId) {
+                            // 4. Construct the obfuscated Google Form URL with pre-filled fields
+                            const finalUrl = SkyLogic.buildFormUrl({
+                                "entry.488317102": user.email,    // Pre-fills User Email
+                                "entry.551539184": data.lookupId  // Pre-fills Donor Lookup ID
+                            });
+
+                            // 5. Success UI Update
+                            loader.style.display = 'none';
+                            status.innerText = "Linked to Donor: " + data.lookupId;
+                            
+                            btn.href = finalUrl;
+                            btn.innerText = "Open Gift Intake Form";
+                            btn.classList.remove('disabled');
+                        } else {
+                            throw new Error("No Donor ID found for this record.");
+                        }
+
+                    } catch (err) {
+                        console.error("Add-in Error:", err);
+                        loader.style.display = 'none';
+                        status.innerHTML = `<span class="error">Status: Access Denied or Record Not Found</span>`;
+                        btn.innerText = "Link Unavailable";
+                        btn.classList.add('disabled');
+                    }
+
+                    /**
+                     * IMPORTANT: args.ready() tells NXT to finally show the iframe.
+                     * We call this last so the user doesn't see "half-loaded" content.
+                     */
+                    args.ready({ 
+                        showUI: true, 
+                        title: 'Gift Intake Tool' 
+                    });
+                }
+            }
         });
-
-        const btn = document.getElementById('formBtn');
-        btn.href = finalUrl;
-        btn.classList.remove('disabled');
-        btn.innerText = `Start Gift Form for ${data.lookupId}`;
-        document.getElementById('status-text').innerText = "Ready to proceed.";
-    }
-} catch (err) {
-    // Error handling...
-}
-
-args.ready({ showUI: true, title: 'Gift Intake' });
+    </script>
+</body>
+</html>
