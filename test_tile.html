@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Test Tile</title>
+    <script src="https://sky.blackbaudcdn.net/static/add-in-client/sdk/1/ui/addin-client.js"></script>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            padding: 20px; 
+            background-color: #f9f9f9; 
+            border: 2px dashed #ccc; 
+        }
+        h1 { color: #333; font-size: 18px; }
+        .red-button {
+            background-color: #d04437;
+            color: white;
+            padding: 15px 25px;
+            text-decoration: none;
+            display: inline-block;
+            border-radius: 5px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Gift Intake Starter</h1>
+    <p>If you can see this, the tile is working!</p>
+    
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSe6fX20spfS1JmcvGUpn0Ns-5SzONxDhNRK4APf00iHkX5_Lw/viewform" 
+       target="_blank" 
+       class="red-button">
+       OPEN BASE FORM
+    </a>
+
+    <script>
+        // This is the "Handshake"
+        // Without this, Blackbaud will hide the tile after 30 seconds
+        var client = new BBSkyAddinClient.AddinClient({
+            callbacks: {
+                init: function(args) {
+                    // Tell Blackbaud to show the tile immediately
+                    args.ready({ showUI: true, title: 'Gift Intake Test' });
+                }
+            }
+        });
+    </script>
+</body>
+</html>
