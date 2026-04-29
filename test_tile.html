@@ -8,41 +8,66 @@
     <div style="font-family: sans-serif; padding: 10px;">
         <h3 id="tile-title" style="margin-top:0;">Gift Intake</h3>
         
-        <a href="https://script.google.com/macros/s/AKfycbyIUY6YWyPbSewodEyAoEvTNy_-AkL-RXHLmW18dksoGrWlrRRkAcX0bYrkjk8WkSNUJA/exec" 
-       target="_blank" 
-       rel="noopener noreferrer"
-       style="background-color: #d04437; color: white; padding: 12px 20px; text-decoration: none; display: inline-block; border-radius: 4px; font-weight: bold;">
-       OPEN GIFT FORM
+        <a id="giftBtn" 
+           href="#" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="background-color: #d04437; color: white; padding: 12px 20px; text-decoration: none; display: inline-block; border-radius: 4px; font-weight: bold;">
+           OPEN GIFT FORM
         </a>
 
         <p id="status" style="font-size: 11px; color: #666; margin-top: 10px;">Initializing...</p>
+
+        <div style="margin-top: 10px;">
+            <label style="font-size: 10px; font-weight: bold; color: #999;">DEBUG: IDENTITY TOKEN</label>
+            <div id="token-debug" style="font-family: monospace; font-size: 9px; background: #eee; padding: 5px; height: 50px; overflow-y: scroll; border: 1px solid #ccc; word-break: break-all; color: #333;">
+                Waiting for token...
+            </div>
+        </div>
     </div>
 
     <script>
         function initAddin() {
-            // Use the "Library Guard" that worked in your LINKS html
             if (window.BBSkyAddinClient) {
                 
                 var client = new BBSkyAddinClient.AddinClient({
                     callbacks: {
                         init: function(args) {
-                            // 1. SUCCESS! The tile is now "awake"
-                            document.getElementById('status').innerText = "Connected to Record: " + args.context.recordId;
+                            const recordId = args.context.recordId;
+                            const gasUrl = "https://script.google.com/macros/s/AKfycbyIUY6YWyPbSewodEyAoEvTNy_-AkL-RXHLmW18dksoGrWlrRRkAcX0bYrkjk8WkSNUJA/exec";
+                            
+                            document.getElementById('status').innerText = "Connected to Record: " + recordId;
 
-                            // 2. THE HANDSHAKE (Makes the tile visible)
-                            args.ready({
-                                showUI: true,
-                                title: 'Gift Intake Tool'
-                            });
+                            // 1. ATTEMPT TO GET TOKEN
+                            client.getUserIdentityToken()
+                                .then(function(token) {
+                                    // Success: Build the full secure link
+                                    const finalUrl = gasUrl + "?guid=" + recordId + "&token=" + token;
+                                    document.getElementById('giftBtn').href = finalUrl;
+                                    document.getElementById('token-debug').innerText = token;
+                                    document.getElementById('status').innerText = "Token Secured.";
+                                })
+                                .catch(function(err) {
+                                    // Fail: Still show the tile, but update status
+                                    document.getElementById('status').innerText = "Token Failed: Using basic link.";
+                                    document.getElementById('token-debug').innerText = "Error: " + err;
+                                    document.getElementById('giftBtn').href = gasUrl + "?guid=" + recordId;
+                                })
+                                .finally(function() {
+                                    // 2. THE HANDSHAKE (Crucial: This is now outside the "success" block)
+                                    // This ensures the tile ALWAYS appears.
+                                    args.ready({
+                                        showUI: true,
+                                        title: 'Gift Intake Tool'
+                                    });
+                                });
                         }
                     }
                 });
 
-                // Export client to window so we can grab it from the console
                 window.client = client;
 
             } else {
-                // Retry if library isn't ready
                 setTimeout(initAddin, 50);
             }
         }
