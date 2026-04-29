@@ -7,7 +7,6 @@ const SkyLogic = {
     // 1. Vault Storage
     _vault: {
         gas: "Y2V4ZS9ESV9SVU9ZL3Mvc29yY2FtL21vYy5lbGdvb2cudHBwcGlyY3MvLzpzcHR0aA==",
-        form: "bXJvZndlaXYvdy9MdzVfNVhrczVYSE5oRHhOT3pTNT1zTjBuUFV2R21KMXNTcHBzMDIyWGZ2NlNRTFBZQUYxL2UvZC9zbXJvZi9jb20uZWxnb29nLnNjb2QvLzpzcHR0aA==",
         secret: "U01ST0ZfVEZJR19VVVM=" 
     },
 
