@@ -2,8 +2,7 @@
  * sky_logic.js
  */
 
-const SkyLogic = {
-    // 1. Vault Storage
+
 const SkyLogic = {
     // 1. Vault Storage
     _vault: {
