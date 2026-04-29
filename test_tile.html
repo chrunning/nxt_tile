@@ -3,13 +3,13 @@
 <head>
     <base target="_top">
     <script src="https://sky.blackbaudcdn.net/static/sky-addin-client/1/sky-addin-client.umd.min.js"></script>
-    <script src="https://chrunning.github.io/nxt_tile/sky_logic.js"></script>
+    <script src="sky_logic.js"></script>
 </head>
 <body>
     <div style="font-family: sans-serif; padding: 10px;">
         <h3 id="tile-title" style="margin-top:0;">Gift Intake</h3>
         
-<a id="giftBtn" 
+        <a id="giftBtn" 
            href="#" 
            target="_blank" 
            rel="noopener noreferrer"
@@ -20,22 +20,22 @@
         <p id="status" style="font-size: 11px; color: #666; margin-top: 10px;">Initializing...</p>
     </div>
 
-<script>
+    <script>
         function initAddin() {
-            // Check if both libraries are loaded
-            if (window.BBSkyAddinClient && window.SkyLogic) {
+            // 1. STRENGTHENED CHECK: Ensure SkyLogic AND the Vault are ready
+            if (typeof SkyLogic !== 'undefined' && SkyLogic.decodeVault && window.BBSkyAddinClient) {
                 
                 var client = new BBSkyAddinClient.AddinClient({
                     callbacks: {
                         init: function(args) {
-                            // Call the function from your external sky_logic.js file
+                            // 2. Pull the URL from your JS file's vault
                             const gasUrl = SkyLogic.decodeVault('gas');
 
                             if (gasUrl) {
                                 document.getElementById('giftBtn').href = gasUrl;
-                                document.getElementById('status').innerText = "System Ready.";
+                                document.getElementById('status').innerText = "Secure Connection Ready.";
                             } else {
-                                document.getElementById('status').innerText = "Configuration Error.";
+                                document.getElementById('status').innerText = "Error: Vault failed.";
                             }
 
                             args.ready({
@@ -46,11 +46,13 @@
                     }
                 });
             } else {
-                // Retry if scripts aren't fully parsed yet
-                setTimeout(initAddin, 50);
+                // 3. If not ready, wait 100ms and try again
+                console.log("Libraries not ready yet, retrying...");
+                setTimeout(initAddin, 100);
             }
         }
 
+        // Start the loop
         initAddin();
     </script>
 </body>
