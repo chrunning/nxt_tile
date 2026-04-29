@@ -17,37 +17,49 @@
 
         <p id="status" style="font-size: 11px; color: #666; margin-top: 10px;">Initializing...</p>
     </div>
+<div style="margin-top: 10px;">
+    <label style="font-size: 10px; font-weight: bold; color: #999;">DEBUG: IDENTITY TOKEN</label>
+    <div id="token-debug" style="font-family: monospace; font-size: 9px; background: #eee; padding: 5px; height: 40px; overflow-y: scroll; border: 1px solid #ccc; word-break: break-all;">
+        Waiting for token...
+    </div>
+</div>
+<script>
+    function initAddin() {
+        if (window.BBSkyAddinClient) {
+            var client = new BBSkyAddinClient.AddinClient({
+                callbacks: {
+                    init: function(args) {
+                        // 1. Start the Token request immediately
+                        client.getUserIdentityToken().then(function(token) {
+                            const recordId = args.context.recordId;
+                            
+                            const gasUrl = "https://script.google.com/macros/s/AKfycbyIUY6YWyPbSewodEyAoEvTNy_-AkL-RXHLmW18dksoGrWlrRRkAcX0bYrkjk8WkSNUJA/exec";
+                            
+                            // 2. Build the final secure link
+                            const finalUrl = gasUrl + "?guid=" + recordId + "&token=" + token;
+                            document.getElementById('token-debug').innerText = token;
+                            // 3. Update the UI
+                            document.getElementById('giftBtn').href = finalUrl;
+                            document.getElementById('status').innerText = "Security Token Generated.";
 
-    <script>
-        function initAddin() {
-            // Use the "Library Guard" that worked in your LINKS html
-            if (window.BBSkyAddinClient) {
-                
-                var client = new BBSkyAddinClient.AddinClient({
-                    callbacks: {
-                        init: function(args) {
-                            // 1. SUCCESS! The tile is now "awake"
-                            document.getElementById('status').innerText = "Connected to Record: " + args.context.recordId;
-
-                            // 2. THE HANDSHAKE (Makes the tile visible)
+                            // 4. THE HANDSHAKE (Only show UI once the link is ready)
                             args.ready({
                                 showUI: true,
                                 title: 'Gift Intake Tool'
                             });
-                        }
+                        });
                     }
-                });
+                }
+            });
 
-                // Export client to window so we can grab it from the console
-                window.client = client;
+            window.client = client;
 
-            } else {
-                // Retry if library isn't ready
-                setTimeout(initAddin, 50);
-            }
+        } else {
+            setTimeout(initAddin, 50);
         }
+    }
 
-        initAddin();
-    </script>
+    initAddin();
+</script>
 </body>
 </html>
