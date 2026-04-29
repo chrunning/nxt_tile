@@ -15,41 +15,26 @@
            style="background-color: #d04437; color: white; padding: 12px 20px; text-decoration: none; display: inline-block; border-radius: 4px; font-weight: bold;">
            OPEN GIFT FORM
         </a>
-
-        <p id="status" style="font-size: 11px; color: #666; margin-top: 10px;">Initializing...</p>
-
-        </div>
     </div>
 
     <script>
         function initAddin() {
             if (window.BBSkyAddinClient) {
-                
                 var client = new BBSkyAddinClient.AddinClient({
                     callbacks: {
                         init: function(args) {
                             const recordId = args.context.recordId;
                             const gasUrl = "https://script.google.com/macros/s/AKfycbyIUY6YWyPbSewodEyAoEvTNy_-AkL-RXHLmW18dksoGrWlrRRkAcX0bYrkjk8WkSNUJA/exec";
                             
-                            document.getElementById('status').innerText = "Connected to Record: " + recordId;
-
-                            // 1. ATTEMPT TO GET TOKEN
                             client.getUserIdentityToken()
                                 .then(function(token) {
-                                    // Success: Build the full secure link
                                     const finalUrl = gasUrl + "?guid=" + recordId + "&token=" + token;
                                     document.getElementById('giftBtn').href = finalUrl;
-                                    document.getElementById('token-debug').innerText = token;
-                                    document.getElementById('status').innerText = "Token Secured.";
                                 })
                                 .catch(function(err) {
-
-                                    document.getElementById('token-debug').innerText = "Error: " + err;
                                     document.getElementById('giftBtn').href = gasUrl + "?guid=" + recordId;
                                 })
                                 .finally(function() {
-                                    // 2. THE HANDSHAKE (Crucial: This is now outside the "success" block)
-                                    // This ensures the tile ALWAYS appears.
                                     args.ready({
                                         showUI: true,
                                         title: 'Gift Intake Tool'
@@ -58,14 +43,11 @@
                         }
                     }
                 });
-
                 window.client = client;
-
             } else {
                 setTimeout(initAddin, 50);
             }
         }
-
         initAddin();
     </script>
 </body>
