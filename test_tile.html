@@ -43,8 +43,7 @@
                                     document.getElementById('status').innerText = "Token Secured.";
                                 })
                                 .catch(function(err) {
-                                    // Fail: Still show the tile, but update status
-                                    document.getElementById('status').innerText = "Token Failed: Using basic link.";
+
                                     document.getElementById('token-debug').innerText = "Error: " + err;
                                     document.getElementById('giftBtn').href = gasUrl + "?guid=" + recordId;
                                 })
