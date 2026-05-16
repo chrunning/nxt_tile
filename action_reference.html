@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base target="_top">
+    <script src="https://sky.blackbaudcdn.net/static/sky-addin-client/1/sky-addin-client.umd.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #ffffff;
+            color: #333;
+        }
+        .title {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+            color: #111;
+        }
+        .select-wrapper {
+            margin-bottom: 15px;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        select:focus {
+            outline: none;
+            border-color: #0078d4;
+        }
+        .detail-card {
+            display: none;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            background: #fff;
+            overflow: hidden;
+        }
+        .detail-row {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f2f5;
+            display: flex;
+            flex-direction: column;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+            margin-bottom: 3px;
+            font-weight: 700;
+        }
+        .detail-value {
+            font-size: 13px;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        /* Highlight critical operational guidance fields */
+        .row-use-for { background-color: #f3f9f4; }
+        .row-use-for .detail-label { color: #2e7d32; }
+        
+        .row-do-not-use-for { background-color: #fff5f5; }
+        .row-do-not-use-for .detail-label { color: #c62828; }
+        .row-do-not-use-for .detail-value { font-weight: 600; color: #b71c1c; }
+    </style>
+</head>
+<body>
+
+    <div>
+        <h3 class="title">Action Item Reference</h3>
+        
+        <div class="select-wrapper">
+            <select id="fieldSelector" onchange="displayFieldDetails()">
+                <option value="">-- Choose a Field --</option>
+            </select>
+        </div>
+
+        <div id="detailCard" class="detail-card">
+            </div>
+    </div>
+
+
+<script>
+    // 1. Keep a global variable to hold the data once fetched
+    let database = null;
+
+    // 2. Render data pairs vertically
+    function displayFieldDetails() {
+        const selector = document.getElementById('fieldSelector');
+        const card = document.getElementById('detailCard');
+        
+        if (!selector.value || !database) {
+            card.style.display = 'none';
+            return;
+        }
+
+        const selectedField = database.fields[selector.value];
+        card.innerHTML = ''; 
+        card.style.display = 'block';
+
+        Object.entries(selectedField).forEach(([key, value]) => {
+            if (key === 'Field') return; 
+
+            const row = document.createElement('div');
+            row.className = 'detail-row';
+            
+            if (key === 'Use for') row.classList.add('row-use-for');
+            if (key === 'DO NOT Use for') row.classList.add('row-do-not-use-for');
+
+            let cleanValue = value;
+            if (value === null) cleanValue = "<em>None</em>";
+            if (value === true) cleanValue = "Yes";
+            if (value === false) cleanValue = "No";
+
+            row.innerHTML = `
+                <div class="detail-label">${key}</div>
+                <div class="detail-value">${cleanValue}</div>
+            `;
+            card.appendChild(row);
+        });
+    }
+
+    // 3. Populate the Select Dropdown list
+    function populateDropdown() {
+        const selector = document.getElementById('fieldSelector');
+        database.fields.forEach((item, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = item.Field;
+            selector.appendChild(option);
+        });
+    }
+
+    // 4. Blackbaud Addin Client Handshake Loop + Dynamic Fetch
+    function initAddin() {
+        if (window.BBSkyAddinClient) {
+            var client = new BBSkyAddinClient.AddinClient({
+                callbacks: {
+                    init: function(args) {
+                        // Fetch your data file right when the tile initializes
+                        fetch("https://cw-dunning.github.io/TSU_NXT_embed/action_data.json")
+                            .then(response => response.json())
+                            .then(data => {
+                                database = data; // Save data to global variable
+                                populateDropdown(); // Fill dropdown
+                                
+                                // Tell NXT the tile is ready only AFTER data loads
+                                args.ready({
+                                    showUI: true,
+                                    title: 'Action Item Reference'
+                                });
+                            })
+                            .catch(err => {
+                                console.error("Failed to load reference data JSON:", err);
+                                document.getElementById('fieldSelector').innerHTML = "<option>Error loading data...</option>";
+                            });
+                    }
+                }
+            });
+        } else {
+            setTimeout(initAddin, 50);
+        }
+    }
+
+    initAddin();
+</script>
+  
+</body>
+</html>
