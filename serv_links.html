@@ -20,13 +20,11 @@
     <script>
         // 2. The "Library Guard" function
         function initAddin() {
-            // Check if the Blackbaud library is loaded yet
             if (window.BBSkyAddinClient) {
                
                 var client = new BBSkyAddinClient.AddinClient({
                     callbacks: {
                         init: function(args) {
-                            // 3. THE HANDSHAKE
                             args.ready({
                                 showUI: true,
                                 title: 'Advancement Link Library'
@@ -35,13 +33,11 @@
                     }
                 });
             } else {
-                // If not loaded, wait 50ms and try again
                 console.log("Library not ready, retrying...");
                 setTimeout(initAddin, 50);
             }
         }
-
-        // Start the check
+        
         initAddin();
     </script>
 </body>
